@@ -55,6 +55,7 @@ struct Trie{
     // 行き先に頂点がない場合はINVALIDが格納される
     using T_NODE = int;
     vector<T_NODE> v_info;
+    vector<int> par;
     // v_info には適当に頂点vの性質をメモすることができる
     // 例えば add_word の info に1を入れると出現回数のカウントができる
     Trie(char a_init = 'a', int D = 26) : a_init(a_init), D(D), child(1, std::vector<int>(D, INVALID)), v_info(1) {}
@@ -65,6 +66,7 @@ struct Trie{
                 child[now][c - a_init] = child.size();
                 child.emplace_back(std::vector<int>(D, INVALID));
                 v_info.resize(child.size());
+                par.resize(child.size());
             }
             now = child[now][c - a_init];
         }

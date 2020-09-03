@@ -17,3 +17,6 @@
 ### 2020/5/6
 * 最短路関係を追加
 * UnionFind を追加# procon_library
+
+### 2020/5/8
+* Online Judge Verification Helper を導入　https://github.com/online-judge-tools/verification-helper/blob/master/README.ja.md

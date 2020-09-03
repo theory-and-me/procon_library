@@ -1,0 +1,3 @@
+INFO:onlinejudge_verify.config:config file loaded: .verify-helper/config.toml: {'languages': {'cpp': {'environments': [{'CXX': 'g++', 'CXXFLAGS': ['-std=c++17', '-Wall', '-g', '-fsanitize=undefined']}]}}}
+WARNING:onlinejudge_verify.verify:failed to increase the stack size
+INFO:onlinejudge_verify.verify:all tests succeeded

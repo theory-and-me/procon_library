@@ -32,8 +32,6 @@ for(int i = 0; i < (int)v.size(); i++){if(i > 0){os << endl;} os << v[i];} retur
 
 template<typename T> void debug(vector<vector<T>>&v,ll h,ll w){for(ll i=0;i<h;i++)
 {cerr<<v[i][0];for(ll j=1;j<w;j++)cerr spa v[i][j];cerr<<endl;}};
-void debug(vector<string>&v,ll h,ll w){for(ll i=0;i<h;i++)
-{for(ll j=0;j<w;j++)cerr<<v[i][j];cerr<<endl;}};
 template<typename T> void debug(vector<T>&v,ll n){if(n!=0)cerr<<v[0];
 for(ll i=1;i<n;i++)cerr spa v[i];
 cerr<<endl;};
@@ -46,62 +44,68 @@ string num2bit(ll num, ll len){
     return bit;
 }
 
-// par[i]  は，iがrootなら-(連結成分のサイズ)を，iがrootではないならばrootを返す
-// root(x) は必ずroot を返す
-struct UnionFindSize {
-    vector<int> par;
-    
-    UnionFindSize(int n) : par(n, -1) { }
-    void init(int n) { par.assign(n, -1); }
-    
-    int root(int x) {
-        if (par[x] < 0) return x;
-        else return par[x] = root(par[x]);
-    }
-    
-    bool issame(int x, int y) {
-        return root(x) == root(y);
-    }
-    
-    bool merge(int x, int y) {
-        x = root(x); y = root(y);
-        if (x == y) return false;
-        if (par[x] > par[y]) swap(x, y); // merge technique
-        par[x] += par[y];
-        par[y] = x;
-        return true;
-    }
-    
-    int size(int x) {
-        return -par[root(x)];
-    }
+// アルメリアさんのを参考に
+// https://atcoder.jp/contests/abc141/submissions/8551806
 
-    void print(){
-		cout << "uf: ";
-		for(int i=0;i<(int)par.size();i++) cout << root(i) << " ";
-		cout << endl;
-	}
-};
+// vの most significant bit のみが立った数を返す
+// やってることは，v の msb 以下の bit が全て立った数 w を作って，w^(w>>1)を返す
+ll msb(ll v){
+  v = v | (v >>  1);
+  v = v | (v >>  2);
+  v = v | (v >>  4);
+  v = v | (v >>  8);
+  v = v | (v >> 16);
+  v = v | (v >> 32);
+  return v ^ (v >> 1);
+}
 
-// verifed @ http://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=DSL_1_A
+vector<ll> elimination_F2(vector<ll> &A){
+    vector<ll> V;
+    for(ll a: A){
+        for(ll v: V){
+            if(msb(v)&a) a ^= v;
+        }
+        if(a>0){
+            for(ll& v: V){
+                if(msb(a)&v) v ^= a;
+            }
+            V.push_back(a);
+            sort(V.rbegin(), V.rend());
+        }
+    }
+    return V;
+} 
+
 int main(){
     cin.tie(0);
     ios::sync_with_stdio(false);
 
-    ll n, q;
-    cin >> n >> q;
+    ll N;
+    cin >> N;
+    vector<ll> A(N);
+    REP(i, N) cin >> A[i];
 
-    UnionFindSize uf(n);
-
-    while(q--){
-        ll t, x, y;
-        cin >> t >> x >> y;
-        if(t){
-            cout << uf.issame(x, y) << endl;
-        }else{
-            uf.merge(x, y);
+    ll res = 0;
+    REP(b, 60){
+        ll cnt = 0;
+        ll val = (1ll<<b);
+        REP(i, N){
+            if(A[i]>>b & 1) cnt++;
+        }
+        if(cnt&1){
+            res += val;
+            REP(i, N){
+                if(A[i]>>b & 1) A[i] ^= val;
+            }
         }
     }
+
+    auto V = elimination_F2(A);
+    ll tmp = 0;
+    for(auto v: V){
+        tmp ^= v;
+    }
+    cout << res+2*tmp << endl;
 
     return 0;
 }
