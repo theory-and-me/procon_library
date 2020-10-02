@@ -1,4 +1,4 @@
-#include <bits/stdc++.h>
+#include <bits/extc++.h>
 using namespace std;
 
 typedef unsigned long long ull;
@@ -45,40 +45,17 @@ string num2bit(ll num, ll len){
 }
 
 
-// オーバーフローに注意！！
-// 大きい行列を扱う場合はbitsetで実装したバージョンを使うのが良い
+// 工事中
 
-// アルメリアさんのを参考に
-// https://atcoder.jp/contests/abc141/submissions/8551806
-
-// vの most significant bit のみが立った数を返す
-// やってることは，v の msb 以下の bit が全て立った数 w を作って，w^(w>>1)を返す
-ll msb(ll v){
-  v = v | (v >>  1);
-  v = v | (v >>  2);
-  v = v | (v >>  4);
-  v = v | (v >>  8);
-  v = v | (v >> 16);
-  v = v | (v >> 32);
-  return v ^ (v >> 1);
-}
-
-vector<ll> elimination_F2(vector<ll> &A){
-    vector<ll> V;
-    for(ll a: A){
-        for(ll v: V){
-            if(msb(v)&a) a ^= v;
-        }
-        if(a>0){
-            for(ll& v: V){
-                if(msb(a)&v) v ^= a;
-            }
-            V.push_back(a);
-            sort(V.rbegin(), V.rend());
-        }
+const int k_max = 1000;
+using BS = bitset<k_max>;
+bool operator>(BS const& a, BS const& b) {
+    REP (i,k_max) {
+        if (a[i] > b[i]) return true;
+        if (a[i] < b[i]) return false;
     }
-    return V;
-} 
+    return false;
+}
 
 int main(){
     cin.tie(0);

@@ -46,6 +46,7 @@ const ll mod = (int)1e9 + 7;
 // BiT
 // 0-indexed で操作できるが，内部では1-indexedで持っていることに注意
 // 基本的には segment tree の使用を推奨，メモリ・定数倍がヤバイ時に使用
+// BIT<T> bit(n) と指定すると，0 から n-1 までの値が操作できる bit.sum(n) は配列外参照するので注意
 template< typename T >
 struct BIT {
   vector< T > data;
@@ -153,8 +154,7 @@ struct BIT {
 //     return 0;
 // }
 
-// TO DO: verify @ https://codeforces.com/contest/1354/problem/D
-
+// verified @ https://codeforces.com/contest/1354/problem/D
 int main(){
 
     ll n, q;

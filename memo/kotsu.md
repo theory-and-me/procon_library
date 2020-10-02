@@ -284,3 +284,8 @@ https://atcoder.jp/contests/hitachi2020/tasks/hitachi2020_d
 * メディアンがx以上である区間の数は転倒数っぽくO(n log n) で数えられる．
 * メディアンが丁度xである区間の数は上記で（x以上の数）-(x+1以上の数)をすれば数えられる
 * 二分探索と相性が良い
+
+## フローの流し直し
+* https://onlinejudge.u-aizu.ac.jp/services/room.html#ACPC2020Day1/problems/F
+* https://yukicoder.me/problems/no/1123
+* http://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=2313
