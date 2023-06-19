@@ -47,10 +47,8 @@ string num2bit(ll num, ll len){
 }
 
 template< typename T >
-using Matrix = vector< vector< T > >;
-
-template< typename T >
-void WarshallFloyd_matrix(Matrix< T > &g, T INF) {
+vector<vector<T>> WarshallFloyd_matrix(vector<vector<T>> &mat, T INF) {
+  vector<vector<T>> g = mat;
   for(int k = 0; k < (int)g.size(); k++) {
     for(int i = 0; i < (int)g.size(); i++) {
       for(int j = 0; j < (int)g.size(); j++) {
@@ -59,6 +57,7 @@ void WarshallFloyd_matrix(Matrix< T > &g, T INF) {
       }
     }
   }
+  return g;
 }
 
 // verified @ http://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=GRL_1_C
@@ -70,7 +69,7 @@ int main(){
     cin >> V >> E;
 
     const ll INF = (1ll<<60);
-    Matrix<ll> D(V, vector<ll>(V, INF));
+    vector<vector<ll>> D(V, vector<ll>(V, INF));
     REP(i, V) D[i][i] = 0;
 
     REP(i, E){
@@ -79,10 +78,10 @@ int main(){
         D[u][v] = d;
     }
     
-    WarshallFloyd_matrix(D, INF);
+    auto F = WarshallFloyd_matrix(D, INF);
 
     REP(i, V){
-        if(D[i][i]<0){
+        if(F[i][i]<0){
             cout << "NEGATIVE CYCLE" << endl;
             return 0;
         }
@@ -90,8 +89,8 @@ int main(){
 
     REP(i, V){
         REP(j, V){
-            if(D[i][j] == INF) cout << "INF";
-            else cout << D[i][j];
+            if(F[i][j] == INF) cout << "INF";
+            else cout << F[i][j];
 
             if(j<V-1) cout << " ";
         }

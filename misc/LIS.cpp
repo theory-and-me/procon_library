@@ -45,7 +45,7 @@ const ll mod = (int)1e9 + 7;
 //const ll mod = 998244353;
 
 // verified @ http://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=DPL_1_D
-V<ll> LIS(V<ll> &X, bool strict, bool increase){
+V<ll> LIS(const V<ll> &X, bool strict, bool increase){
     // res[i] には区間[0, i]におけるLISの長さが入る
     // strict で狭義か否かを指定
     // increase で単調増加か否かを指定

@@ -1,5 +1,7 @@
 #include <bits/stdc++.h>
+#include <atcoder/segtree>
 using namespace std;
+using namespace atcoder;
 
 #define REP(i,n) for(ll i=0;i<(ll)n;i++)
 #define dump(x)  cerr << "Line " << __LINE__ << ": " <<  #x << " = " << (x) << "\n";
@@ -43,94 +45,67 @@ const ll INF = (1ll<<62);
 const ll mod = (int)1e9 + 7;
 //const ll mod = 998244353;
 
-// トポロジカルソート
-// （DAGかどうか，DAGならばトポロジカル順序）のタプルを返す
-// 1->2->0 みたいなグラフなら [1, 2, 0] を返す，[2, 0, 1] ではないことに注意
-using Graph = vector<vector<int>>;
-tuple<bool, vector<int>> topologicalSort(Graph &G){
-    int n = G.size();
-    vector<int> in_deg(n, 0);
-    queue<int> qu;
-    
-    REP(i, n){
-        for(auto nx: G[i]){
-            in_deg[nx]++;
-        }
-    }
-    REP(i, n) if(!in_deg[i]) qu.push(i);
+// Lorent さんの swag https://yukicoder.me/submissions/597464
 
-    vector<int> topological_order;
-    int cnt = 0;
-    while(!qu.empty()){
-        int u = qu.front();qu.pop();
-        topological_order.push_back(u);
-        cnt++;
-        for(auto v: G[u]){
-            in_deg[v]--;
-            if(!in_deg[v]) qu.push(v);
-        }
-    }
-
-    bool is_dag = (cnt == n);
-    return {is_dag, topological_order};
+ll op(ll x, ll y){
+    return max(x, y);
 }
 
+ll e(){
+    return -INF;
+}
+
+template<class S, S (*op)(S, S), S (*e)()> struct swag {
+    std::stack<std::pair<S, S>> front_stack, back_stack;
+    swag() {
+        front_stack.emplace(e(), e());
+        back_stack.emplace(e(), e());
+    }
+    bool empty() const { return front_stack.size() == 1 && back_stack.size() == 1; }
+    size_t size() const { return front_stack.size() + back_stack.size() - 2; }
+    S fold() const { return op(front_stack.top().second, back_stack.top().second); }
+    void push(const S& x) { back_stack.emplace(x, op(back_stack.top().second, x)); }
+    void pop() {
+        assert(front_stack.size() > 1 || back_stack.size() > 1);
+        if (front_stack.size() > 1) {
+            front_stack.pop();
+        } else {
+            while (back_stack.size() > 2) {
+                front_stack.emplace(back_stack.top().first, op(front_stack.top().second, back_stack.top().first));
+                back_stack.pop();
+            }
+            back_stack.pop();
+        }
+    }
+};
+
+// verified @ https://atcoder.jp/contests/typical90/tasks/typical90_ak
 int main(){
 
-	// // verified @ https://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=GRL_4_B
-	// ll n, m;
-	// cin >> n >> m;
-	// Graph G(n);
-	// REP(i, m){
-	// 	ll s, t;
-	// 	cin >> s >> t;
-	// 	G[s].push_back(t);
-	// }
+    ll W, N;
+    cin >> W >> N;
 
-	// auto[is_dag, ts] = topologicalSort(G);
-	// for(auto v: ts) cout << v << "\n";
+    vector<ll> L(N), R(N), V(N);
+    REP(i, N) cin >> L[i] >> R[i] >> V[i];
 
-	// verified @ https://atcoder.jp/contests/abc139/tasks/abc139_e
+    vector<ll> dp(W+1, -INF);
+    dp[0] = 0;
 
-	ll N;
-	cin >> N;
-	vector<vector<ll>> A(N);
-	REP(i, N){
-		REP(j, N-1){
-			ll tmp;
-			cin >> tmp;
-			tmp--;
-			A[i].push_back(tmp);
-		}
-	}
+    REP(i, N){
+        swag<ll, op, e> qu;
+        vector<ll> td(W+1, -INF);
+        REP(j, W+1){
+            if(j>=L[i]) qu.push(dp[j-L[i]]);
+            ll ma = (qu.empty() ? -INF : qu.fold());
+            chmax(td[j], dp[j]);
+            chmax(td[j], ma+V[i]);
+            if(j>=R[i]) qu.pop();
+        }
+        // cout << td << endl;
+        swap(dp, td);
+    }
 
-	Graph G(N*N);
-	REP(i, N){
-		REP(j, N-2){
-			int x1 = i, y1 = A[i][j];
-			int x2 = i, y2 = A[i][j+1];
-			if(x1 > y1) swap(x1, y1);
-			if(x2 > y2) swap(x2, y2);
-			G[x1 * N + y1].push_back(x2 * N + y2);
-		}
-	}
+    cout << (dp[W] < -INF/2 ? -1 : dp[W]) << "\n";
 
-	auto [is_dag, ts] = topologicalSort(G);
-	if(!is_dag){
-		cout << -1 << endl;
-		return 0;
-	}
-
-	ll ma = 0;
-	V<ll> dp(N*N, 0);
-	for(auto u: ts){
-		for(auto v: G[u]){
-			chmax(dp[v], dp[u]+1);
-			chmax(ma, dp[v]);
-		}
-	}
-
-	cout << ma+1 << endl;
-
-	return 0;
+    return 0;
 }

@@ -44,6 +44,7 @@ string num2bit(ll num, ll len){
     return bit;
 }
 
+typedef vector<vector<ll>> Graph;
 vector<int> graph_bfs(Graph &G, vector<ll> &s){
     // sは始点のリスト
     const int N = G.size();

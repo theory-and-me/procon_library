@@ -289,3 +289,84 @@ template <typename T> struct matrix {
         return is;
     }
 };
+
+template <typename T> matrix<T> ConjugateGradient(const matrix<T> &A, const matrix<T> &b, T epsilon){
+    int N = A.height();
+    matrix<T> x(N, 1);
+    matrix<T> r = b - A * x;
+    matrix<T> p = r;
+
+    auto inner_product = [](const matrix<T> &first_vector, const matrix<T> &second_vector){
+        return (first_vector.transpose() * second_vector).get(0, 0);
+    };
+
+    for(int k=0;;k++){
+        T alpha = inner_product(r, p) / inner_product(p, A * p);
+        x += p * alpha;
+        r -= A * p * alpha;
+        T beta = - inner_product(r, A * p) / inner_product(p, A * p);
+        p *= beta;
+        p += r;
+
+        if(sqrt(inner_product(r, r)) < epsilon * sqrt(inner_product(b, b))) break;
+    }
+
+    return x;
+}
+
+template <typename T> matrix<T> CGLS(const matrix<T> &A, const matrix<T> &b, T epsilon){
+    int H = A.height();
+    int W = A.width();
+    matrix<T> x(W, 1);
+    matrix<T> d = b;
+    matrix<T> r = A.transpose() * b;
+    matrix<T> p = r;
+    matrix<T> t = A * p;
+
+    auto inner_product = [](const matrix<T> &first_vector, const matrix<T> &second_vector){
+        return (first_vector.transpose() * second_vector).get(0, 0);
+    };
+
+    for(int k=0;;k++){
+        T alpha = inner_product(r, r) / inner_product(t, t);
+        x += p * alpha;
+        d -= t * alpha;
+        auto r_new = A.transpose() * d;
+        T beta = - inner_product(r_new, r_new) / inner_product(r, r);
+        p *= beta;
+        p += r_new;
+        t = A * p;
+        r = r_new;
+        // cerr << k << " th iteration:  r = " << inner_product(r, r) << endl; 
+
+        if(sqrt(inner_product(r, r)) < epsilon * sqrt(inner_product(b, b))){
+            // cerr << "total iteration: " << k << endl; 
+            break;
+        }
+    }
+
+    return x;
+}
+
+int main(){
+
+    matrix A(vector<vector<double>>{
+        {6, 2, 3}, 
+        {2, 1, 4}
+    });
+
+    matrix b(vector<vector<double>>{
+        {5}, 
+        {8}
+    });
+
+    auto x = CGLS(A, b, 1e-10);
+    cout << "CGLS" << endl;
+    cout << x << endl;
+
+    auto y = ConjugateGradient(A.transpose() * A, A.transpose() * b, 1e-10);
+    cout << "CG" << endl;
+    cout << y << endl;
+
+    return 0;
+}

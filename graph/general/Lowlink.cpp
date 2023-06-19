@@ -43,94 +43,67 @@ const ll INF = (1ll<<62);
 const ll mod = (int)1e9 + 7;
 //const ll mod = 998244353;
 
-// トポロジカルソート
-// （DAGかどうか，DAGならばトポロジカル順序）のタプルを返す
-// 1->2->0 みたいなグラフなら [1, 2, 0] を返す，[2, 0, 1] ではないことに注意
 using Graph = vector<vector<int>>;
-tuple<bool, vector<int>> topologicalSort(Graph &G){
-    int n = G.size();
-    vector<int> in_deg(n, 0);
-    queue<int> qu;
-    
-    REP(i, n){
-        for(auto nx: G[i]){
-            in_deg[nx]++;
-        }
-    }
-    REP(i, n) if(!in_deg[i]) qu.push(i);
 
-    vector<int> topological_order;
+tuple<vector<int>, vector<pii>> lowlink(const Graph &G){
+
+    int N = G.size();
+    vector<int> ord(N, -1), low(N, -1);
+    vector<int> aps;
+    vector<pii> bridges;
     int cnt = 0;
-    while(!qu.empty()){
-        int u = qu.front();qu.pop();
-        topological_order.push_back(u);
-        cnt++;
-        for(auto v: G[u]){
-            in_deg[v]--;
-            if(!in_deg[v]) qu.push(v);
-        }
-    }
 
-    bool is_dag = (cnt == n);
-    return {is_dag, topological_order};
+    auto dfs = [&](auto self, int v, int par) -> void{
+        ord[v] = cnt;
+        low[v] = cnt;
+        cnt++;
+        bool is_aps = false;
+        int num_of_child = 0;
+        for(auto u: G[v]){
+            if(ord[u] == -1){
+                num_of_child++;
+                self(self, u, v);
+                chmin(low[v], low[u]);
+                if(par != -1 and ord[v] <= low[u]) is_aps = true;
+                if(ord[v] < low[u]) bridges.emplace_back(min(u, v), max(u, v));
+            }else if(u != par){
+                low[v] = min(low[v], ord[u]);
+            }
+        }
+        if(par == -1 and num_of_child >= 2) is_aps = true;
+        if(is_aps) aps.push_back(v);
+        return;
+    };
+
+    dfs(dfs, 0, -1);
+
+    sort(ALL(aps));
+    sort(ALL(bridges));
+
+    return {aps, bridges};
 }
 
 int main(){
 
-	// // verified @ https://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=GRL_4_B
-	// ll n, m;
-	// cin >> n >> m;
-	// Graph G(n);
-	// REP(i, m){
-	// 	ll s, t;
-	// 	cin >> s >> t;
-	// 	G[s].push_back(t);
-	// }
+    int N, M;
+    cin >> N >> M;
+    vector<int> s(M), t(M);
+    REP(i, M) cin >> s[i] >> t[i];
 
-	// auto[is_dag, ts] = topologicalSort(G);
-	// for(auto v: ts) cout << v << "\n";
+    Graph G(N);
+    REP(i, M){
+        G[s[i]].push_back(t[i]);
+        G[t[i]].push_back(s[i]);
+    }
 
-	// verified @ https://atcoder.jp/contests/abc139/tasks/abc139_e
+    auto [aps, bridges] = lowlink(G);
 
-	ll N;
-	cin >> N;
-	vector<vector<ll>> A(N);
-	REP(i, N){
-		REP(j, N-1){
-			ll tmp;
-			cin >> tmp;
-			tmp--;
-			A[i].push_back(tmp);
-		}
-	}
+    // articulation points
+    // https://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=GRL_3_A
+    // for(auto v: aps) cout << v << "\n";
 
-	Graph G(N*N);
-	REP(i, N){
-		REP(j, N-2){
-			int x1 = i, y1 = A[i][j];
-			int x2 = i, y2 = A[i][j+1];
-			if(x1 > y1) swap(x1, y1);
-			if(x2 > y2) swap(x2, y2);
-			G[x1 * N + y1].push_back(x2 * N + y2);
-		}
-	}
-
-	auto [is_dag, ts] = topologicalSort(G);
-	if(!is_dag){
-		cout << -1 << endl;
-		return 0;
-	}
-
-	ll ma = 0;
-	V<ll> dp(N*N, 0);
-	for(auto u: ts){
-		for(auto v: G[u]){
-			chmax(dp[v], dp[u]+1);
-			chmax(ma, dp[v]);
-		}
-	}
-
-	cout << ma+1 << endl;
-
-	return 0;
+    // bridge
+    // https://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=GRL_3_B&lang=ja
+    for(auto [u, v]: bridges) cout << u spa v << "\n";
+    return 0;
 }

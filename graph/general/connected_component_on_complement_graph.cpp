@@ -43,94 +43,67 @@ const ll INF = (1ll<<62);
 const ll mod = (int)1e9 + 7;
 //const ll mod = 998244353;
 
-// トポロジカルソート
-// （DAGかどうか，DAGならばトポロジカル順序）のタプルを返す
-// 1->2->0 みたいなグラフなら [1, 2, 0] を返す，[2, 0, 1] ではないことに注意
-using Graph = vector<vector<int>>;
-tuple<bool, vector<int>> topologicalSort(Graph &G){
+using Graph = V<V<int>>;
+
+vector<int> connected_component_on_complement_graph(Graph &G){
     int n = G.size();
-    vector<int> in_deg(n, 0);
-    queue<int> qu;
-    
-    REP(i, n){
-        for(auto nx: G[i]){
-            in_deg[nx]++;
+    vector<int> connected_component(n, -1);
+
+    auto bfs_on_complement_graph = [&](int s){
+        queue<int> Q;
+        Q.push(s);
+        unordered_set<int> S;
+        for(int i=0;i<n;i++) if(i != s) S.insert(i);
+
+        while(!Q.empty()){
+            int v = Q.front();Q.pop();
+            connected_component[v] = s;
+            unordered_set<int> L;
+            for(auto u: G[v]){
+                auto itr = S.find(u);
+                if(itr != S.end()){
+                    S.erase(itr);
+                    L.insert(u);
+                }
+            }
+            for(auto u: S){
+                Q.push(u);
+            }
+            swap(S, L);
+        }   
+        return;
+    };
+
+    for(int i=0;i<n;i++){
+        if(connected_component[i] == -1){
+            bfs_on_complement_graph(i);
         }
     }
-    REP(i, n) if(!in_deg[i]) qu.push(i);
 
-    vector<int> topological_order;
-    int cnt = 0;
-    while(!qu.empty()){
-        int u = qu.front();qu.pop();
-        topological_order.push_back(u);
-        cnt++;
-        for(auto v: G[u]){
-            in_deg[v]--;
-            if(!in_deg[v]) qu.push(v);
-        }
-    }
-
-    bool is_dag = (cnt == n);
-    return {is_dag, topological_order};
+    return connected_component;
 }
 
+// verified @ https://codeforces.com/contest/1242/problem/B
 int main(){
 
-	// // verified @ https://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=GRL_4_B
-	// ll n, m;
-	// cin >> n >> m;
-	// Graph G(n);
-	// REP(i, m){
-	// 	ll s, t;
-	// 	cin >> s >> t;
-	// 	G[s].push_back(t);
-	// }
+    ll n, m;
+    cin >> n >> m;
+    
+    Graph G(n);
+    REP(i, m){
+        int u, v;
+        cin >> u >> v;
+        u--, v--;
+        G[u].push_back(v);
+        G[v].push_back(u);
+    }
+    
+    auto comp = connected_component_on_complement_graph(G);
 
-	// auto[is_dag, ts] = topologicalSort(G);
-	// for(auto v: ts) cout << v << "\n";
+    set<int> st;
+    for(auto x: comp) st.insert(x);
 
-	// verified @ https://atcoder.jp/contests/abc139/tasks/abc139_e
+    cout << (ll)st.size() - 1 << endl;
 
-	ll N;
-	cin >> N;
-	vector<vector<ll>> A(N);
-	REP(i, N){
-		REP(j, N-1){
-			ll tmp;
-			cin >> tmp;
-			tmp--;
-			A[i].push_back(tmp);
-		}
-	}
-
-	Graph G(N*N);
-	REP(i, N){
-		REP(j, N-2){
-			int x1 = i, y1 = A[i][j];
-			int x2 = i, y2 = A[i][j+1];
-			if(x1 > y1) swap(x1, y1);
-			if(x2 > y2) swap(x2, y2);
-			G[x1 * N + y1].push_back(x2 * N + y2);
-		}
-	}
-
-	auto [is_dag, ts] = topologicalSort(G);
-	if(!is_dag){
-		cout << -1 << endl;
-		return 0;
-	}
-
-	ll ma = 0;
-	V<ll> dp(N*N, 0);
-	for(auto u: ts){
-		for(auto v: G[u]){
-			chmax(dp[v], dp[u]+1);
-			chmax(ma, dp[v]);
-		}
-	}
-
-	cout << ma+1 << endl;
-
-	return 0;
+    return 0;
 }
